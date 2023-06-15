@@ -3,6 +3,7 @@ import configparser
 import argparse
 
 from skllm.config import SKLLMConfig
+from skllm import MultiLabelZeroShotGPTClassifier
 
 """
     Multi-label zero-shot with Scikit-LLM library https://github.com/iryna-kondr/scikit-llm
@@ -98,10 +99,13 @@ if __name__ == "__main__":
 
     # defining the model
     openai_model = args.m
-    clf = ZeroShotGPTClassifier(openai_model = openai_model)
 
-    # fitting the data / Train the model 
+    #Initialize the classifier with the OpenAI model
+    max_labels = args.l
+    clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
+
+    #fitting the data / Train the model 
     clf.fit(X = X, y = y)
 
-    # Use the trained classifier to predict the error of the paraphrases
+    #Use the trained classifier to predict the error of the paraphrases
     predicted_araprhases_error = clf.predict(X = X)
