@@ -94,4 +94,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     #Load training dataset
-    X,Y = get_dataset(args)
+    X,y = get_dataset(args)
+
+    # defining the model
+    openai_model = args.m
+    clf = ZeroShotGPTClassifier(openai_model = openai_model)
+
+    # fitting the data / Train the model 
+    clf.fit(X = X, y = y)
+
+    # Use the trained classifier to predict the error of the paraphrases
+    predicted_araprhases_error = clf.predict(X = X)
