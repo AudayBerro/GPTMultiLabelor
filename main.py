@@ -14,6 +14,8 @@ from process_data import skllm_format_converter
     Inspired from:
         - https://medium.com/@fareedkhandev/scikit-llm-sklearn-meets-large-language-models-11fc6f30e530
         - https://towardsdatascience.com/scikit-llm-power-up-your-text-analysis-in-python-using-llm-models-within-scikit-learn-framework-e9f101ffb6d4
+    
+    To execute the script and Fine-tune a GPY based model run the following command: python  main.py -f TPME_dataset.csv
 """
 
 def configure_API_Key():
