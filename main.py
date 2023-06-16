@@ -4,6 +4,9 @@ import argparse
 
 from skllm.config import SKLLMConfig
 from skllm import MultiLabelZeroShotGPTClassifier
+import pandas as pd
+
+from process_data import skllm_format_converter
 
 """
     Multi-label zero-shot with Scikit-LLM library https://github.com/iryna-kondr/scikit-llm
@@ -46,28 +49,27 @@ def load_parser():
             - None
 
         return:
-            - parser: <class 'argparse.ArgumentParser'> object
+            - parser: <class 'argparse.Namespace'> object
     """
-
     parser = argparse.ArgumentParser(description='Fine-tune Multi Label ZeroShot GPT Classifier')
 
     parser.add_argument('-f','--datapath', required=True,
         help='path to the file containing the training dataset') # -f data set file name argument
     
     parser.add_argument('-l','--max_labels', type=int, required=False, default=3,
-        help="The maximum number of labels you want to assign to each sample. Define it when you don't have labeled dataset",)
+        help="The maximum number of labels you want to assign to each sample. Define it when you don't have labeled dataset")
     
     parser.add_argument('-m','--openai_model', type=str, required=False, default='gpt-3.5-turbo',
-        help="OpenAI model to use. The OpenAI API is powered by a diverse set of models with different capabilities and price points https://platform.openai.com/docs/models/",)
+        help="OpenAI model to use. The OpenAI API is powered by a diverse set of models with different capabilities and price points https://platform.openai.com/docs/models/")
     
-    return parser
+    return parser.parse_args()
 
-def get_dataset(parser, label_avalability = True):
+def get_dataset(data_path, label_avalability = True):
     """
         Get classification dataset that we will use to fine-tuning the selected OpenAI model
 
         args:
-            - parser: <class 'argparse.Namespace'> object, allows you to obtain the path to the training dataset and other optional arguments passed in
+            - data_path: pytho nstring, allows you to obtain the path to the training dataset arguments passed in
             - label_avalability: Boolean, if True means the dataset is labeled, False means there is no labeled data.
 
         return:
@@ -83,7 +85,15 @@ def get_dataset(parser, label_avalability = True):
                     ["spelling"]
                 ]
     """
-    pass
+    __labels = [
+        'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
+    ]
+
+    #read data
+    df = pd.read_csv(data_path, sep = ',',na_filter= False)
+
+    X,y = skllm_format_converter(df,__labels)
+    return X,y
 
 if __name__ == "__main__":
 
@@ -91,11 +101,10 @@ if __name__ == "__main__":
     configure_API_Key()
 
     #Load parser
-    parser = load_parser()
-    args = parser.parse_args()
+    args = load_parser()
 
     #Load training dataset
-    X,y = get_dataset(args)
+    X,y = get_dataset(args.datapath)
 
     # defining the model
     openai_model = args.m
@@ -105,7 +114,7 @@ if __name__ == "__main__":
     clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
 
     #fitting the data / Train the model 
-    clf.fit(X = X, y = y)
+    clf.fit(X = X[0:10], y = y[0:10])
 
     #Use the trained classifier to predict the error of the paraphrases
     predicted_araprhases_error = clf.predict(X = X)
