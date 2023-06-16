@@ -138,15 +138,19 @@ def convert_data_to_skllm_format(df,target_label = "error_category"):
 
     return X,y
 
-if __name__ == "__main__":
-    # universal_sentence_encoder_embedding_test()
-    # sys.exit()
-    __labels = [
-        'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
-    ]
+def skllm_format_converter(df,labels):
+    """
+        A wrapper function to convert a pandas dataframe to a format compatible whith the Scikit-LLM library MultiLabelZeroShotGPTClassifier function to a GPT-based model on the Multi-Label Zero-Shot paraphrases error prediction task.
 
-    #read data
-    df = pd.read_csv('./TPME_dataset.csv', sep = ',',na_filter= False)
+        :args
+            - df: pandas dataframe containing the data to process.
+            - labels: a python list containing the labels. This list will also be useful for selecting columns.
+            -
+            -
+
+        :return
+            - X,y: returns two python lists X and y. Where X is a python list of paraphrases and y their respective labeled errors.
+    """
 
     #print columns
     # print(df.columns)
@@ -160,8 +164,22 @@ if __name__ == "__main__":
     # convert columns binary values into a single vector of string labels e.g., if we have 5 labels: [1,0,1,0,1] => [label-A,label-C,label-E] 
     df = normalize_error_column(df)
 
-    plot_labels_count(df,__labels)
+    plot_labels_count(df, labels)
 
     X,y = convert_data_to_skllm_format(df)
 
     assert len(X)==len(y),"X and y must have the same size"
+
+    return X,y
+
+
+if __name__ == "__main__":
+    
+    __labels = [
+        'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
+    ]
+
+    #read data
+    df = pd.read_csv('./TPME_dataset.csv', sep = ',',na_filter= False)
+
+    skllm_format_converter(df,__labels)
