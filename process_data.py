@@ -78,8 +78,8 @@ def add_labels_to_bar_plot(x,y):
         Add value labels on a Matplotlib Bar Chart. Adding value labels in the center of each Bar on the Bar Chart.
 
         :args
-            - x: a python list containing the labels of the plot x-axis
-            - y: a python list containing the number of each label on the x-axis
+            - x: a python list containing the labels of the plot x-axis, the labels.
+            - y: a python list containing the number of each label on the x-axis, labels_count.
 
             e.g., x = ["label-A", "label-B", "label-C", "label-D"] y = [234, 2344, 125, 653]
         :retrun
@@ -118,6 +118,26 @@ def plot_labels_count(df, labels):
     add_labels_to_bar_plot(labels,labels_count)
     plt.savefig('./labels.png')#save the ploted figure
 
+def convert_data_to_skllm_format(df,target_label = "error_category"):
+    """
+        Convert the df data to a fromat compatible with the Scikit-LLM library. See the get_multilabel_classification_dataset() at https://github.com/iryna-kondr/scikit-llm/blob/main/skllm/datasets/multi_label.py
+        This function returns two python lists X and y. To construct X, we'll extract only the paraphrase row from the database. To construct y, we'll extract only the target_label column.
+
+        :args
+            - df: the pandas dataframe to process.
+            - target_label: a pyhton string specifying the column in the datasframe containing the ground truth labels.
+
+        :return
+            - X,y : where X is a python list of paraphrases and y their respective labled errors.
+            
+    """
+
+    X = df[['paraphrase']]# extarct paraprhase column only
+
+    y = df[[target_label]]# extarct error_category column only
+
+    return X,y
+
 if __name__ == "__main__":
     # universal_sentence_encoder_embedding_test()
     # sys.exit()
@@ -141,3 +161,5 @@ if __name__ == "__main__":
     df = normalize_error_column(df)
 
     plot_labels_count(df,__labels)
+
+    X,y = convert_data_to_skllm_format(df)
