@@ -1,4 +1,5 @@
 import sys
+from ast import literal_eval
 
 import pandas as pd
 import numpy as np
@@ -118,6 +119,22 @@ def plot_labels_count(df, labels):
     add_labels_to_bar_plot(labels,labels_count)
     plt.savefig('./labels.png')#save the ploted figure
 
+def clean_y(df):
+    """
+        This function processes the data and removes quotation marks preceding list items in the data, thus cleaning up the data. Converts the data from a list of strings containing a list of labels into a list of lists of labels.
+        e.g. if data = ["[a,b]","[c,d,e]","[a,e]","[b]"] => data = [[a,b],[c,d,e],[a,e],[b]]
+
+        :args
+            - data: a pandas.core.series.Series , where each element is a list of label, e.g, data = [ "[a,b]", "[c,d,e]", "[a,e]", "[b]" ]
+        
+        :return
+            - a processed python list of list elements, e.g data = [[a,b],[c,d,e],[a,e],[b]]
+    """
+
+    y = [ literal_eval(v) for i,v in df.items()]#literal_eval convrt a string of list to a list e.g. "['a','b','c']" => ['a','b','c']
+    return y
+
+
 def convert_data_to_skllm_format(df,target_label = "error_category"):
     """
         Convert the df data to a fromat compatible with the Scikit-LLM library. See the get_multilabel_classification_dataset() at https://github.com/iryna-kondr/scikit-llm/blob/main/skllm/datasets/multi_label.py
@@ -132,9 +149,10 @@ def convert_data_to_skllm_format(df,target_label = "error_category"):
             
     """
 
-    X = df[['paraphrase']]# extarct paraprhase column only
+    X = df['paraphrase'].values.tolist()# extarct paraprhase column only
 
-    y = df[[target_label]]# extarct error_category column only
+    y = df[target_label]# extarct error_category column only
+    y = clean_y(y)
 
     return X,y
 
@@ -182,4 +200,8 @@ if __name__ == "__main__":
     #read data
     df = pd.read_csv('./TPME_dataset.csv', sep = ',',na_filter= False)
 
-    skllm_format_converter(df,__labels)
+    X,y = skllm_format_converter(df,__labels)
+    print(X[0:10])
+    print(type(X))
+    print(y[0:10])
+    print(type(y))
