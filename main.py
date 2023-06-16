@@ -34,14 +34,21 @@ def configure_API_Key():
     config = configparser.ConfigParser(inline_comment_prefixes="#")
     config.read(os.path.join(os.path.dirname(__file__), ".","config.ini"))
     OPENAI_KEY_CONFIG = config["OpenAIKey"]
+    OPENAI_ORG_CONFIG = config["OpenAIOrganization"]
 
     if "OPENAI_SECRET_KEY" not in OPENAI_KEY_CONFIG and OPENAI_KEY_CONFIG["OPENAI_SECRET_KEY"] == "":
         raise Exception("You need to pass your OpenAI API key to Scikit-LLM in config.ini")
     else:
         OPENAI_SECRET_KEY = OPENAI_KEY_CONFIG['OPENAI_SECRET_KEY']
     
+    
+    if "OPENAI_ORG_ID" not in OPENAI_ORG_CONFIG and OPENAI_ORG_CONFIG["OPENAI_ORG_ID"] == "":
+        raise Exception("OpenAI organization was not found. You need to pass your organization ID to Scikit-LLM in config.ini")
+    else:
+        OPENAI_ORG_ID = OPENAI_ORG_CONFIG['OPENAI_ORG_ID']
     # configure OpenAI API (key) Set your OpenAI API key
     SKLLMConfig.set_openai_key(OPENAI_SECRET_KEY)
+    SKLLMConfig.set_openai_org(OPENAI_ORG_ID)
 
 def load_parser():
     """
@@ -58,7 +65,7 @@ def load_parser():
     parser.add_argument('-f','--datapath', required=True,
         help='path to the file containing the training dataset') # -f data set file name argument
     
-    parser.add_argument('-l','--max_labels', type=int, required=False, default=3,
+    parser.add_argument('-l','--max_labels', type=int, required=False, default=5,
         help="The maximum number of labels you want to assign to each sample. Define it when you don't have labeled dataset")
     
     parser.add_argument('-m','--openai_model', type=str, required=False, default='gpt-3.5-turbo',
@@ -109,14 +116,14 @@ if __name__ == "__main__":
     X,y = get_dataset(args.datapath)
 
     # defining the model
-    openai_model = args.m
+    openai_model = args.openai_model
 
     #Initialize the classifier with the OpenAI model
-    max_labels = args.l
+    max_labels = args.max_labels
     clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
 
     #fitting the data / Train the model 
-    clf.fit(X = X[0:10], y = y[0:10])
+    clf.fit(X = X[0:50], y = y[0:50])
 
     #Use the trained classifier to predict the error of the paraphrases
-    predicted_araprhases_error = clf.predict(X = X)
+    # predicted_araprhases_error = clf.predict(X = X[65:75])
