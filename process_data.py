@@ -163,3 +163,5 @@ if __name__ == "__main__":
     plot_labels_count(df,__labels)
 
     X,y = convert_data_to_skllm_format(df)
+
+    assert len(X)==len(y),"X and y must have the same size"
