@@ -201,7 +201,3 @@ if __name__ == "__main__":
     df = pd.read_csv('./TPME_dataset.csv', sep = ',',na_filter= False)
 
     X,y = skllm_format_converter(df,__labels)
-    print(X[0:10])
-    print(type(X))
-    print(y[0:10])
-    print(type(y))
