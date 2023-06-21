@@ -104,6 +104,31 @@ def get_dataset(data_path, label_avalability = True):
     X,y = skllm_format_converter(df,__labels)
     return X,y
 
+def get_prediction(clf, data):
+    """
+        Get classification dataset that we will use to fine-tuning the selected OpenAI model
+
+        args:
+            - clf: a skllm.models.gpt_zero_shot_clf.MultiLabelZeroShotGPTClassifier  instance, this object is a wrapper for the fine-tuned GPT-based model
+            - data: a python list of sentence strings for which we will predict the error label with the clf model.
+            e.g. X = [
+                    "Book a flight fromm Lyon to",
+                    "Any restaurant servin gLebanese food near me?"
+                ]
+            
+        return:
+            - predicted_paraphrases_error: a python list of predicted errors.
+            e.g.
+                predicted_paraphrases_error = [
+                    ['spelling','slot omission'], ---> predicted error for the sentence 1: "Book a flight fromm Lyon to",
+                    ['spelling']" ---> predicted error for the sentence 2: "Any restaurant servin gLebanese food near me?"
+                ]
+    """
+
+    predicted_paraphrases_error = clf.predict(X = data)
+
+    return predicted_paraphrases_error
+
 if __name__ == "__main__":
 
     #Configure OpenAI API (key)
@@ -119,11 +144,21 @@ if __name__ == "__main__":
     openai_model = args.openai_model
 
     #Initialize the classifier with the OpenAI model
-    max_labels = args.max_labels
+    # max_labels = args.max_labels
+    max_labels = 5
     clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
+    print(type(clf))
+    sys.exit()
 
     #fitting the data / Train the model 
-    clf.fit(X = X[0:50], y = y[0:50])
+    clf.fit(X = X[0:20], y = y[0:20])
+
+    print(f"Type clf: {type(clf)}")
 
     #Use the trained classifier to predict the error of the paraphrases
-    # predicted_araprhases_error = clf.predict(X = X[65:75])
+    test_set = X[51:60]
+    true_label = y[51:60]
+    predicted_paraphrases_error = get_prediction(clf, test_set)
+
+    for review, labels, truth in zip(test_set, predicted_paraphrases_error,true_label):
+        print(f"Review: {review}\nPredicted Labels: {labels}\nTrue Labels: {truth}\n")
