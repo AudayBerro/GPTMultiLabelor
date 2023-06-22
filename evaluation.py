@@ -40,11 +40,9 @@ def krippendorff_alpha(df):
     idxc = 0#counter to track non empty row in df
     for index, row in df.iterrows():
         #if prediction is not an empty value
-        print(row)
         if row[0]:
             idxc+=1
-            #add BERT predicted label
-            print(row[0])
+            #add predicted label
             data  = row[0]
             task_data.append(
                 (
@@ -53,7 +51,6 @@ def krippendorff_alpha(df):
             )
 
             #add manually annotated label
-            print(row[1])
             data  = row[1]
             task_data.append(
                 (
