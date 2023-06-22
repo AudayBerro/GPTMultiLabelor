@@ -190,11 +190,11 @@ def test():
     clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
 
     #fitting the data / Train the model 
-    clf.fit(X = X[0:10], y = y[0:10])
+    clf.fit(X = X[:500], y = y[0:500])
 
     #Use the trained classifier to predict the error of the paraphrases
-    test_set = X[51:60]
-    true_label = y[51:60]
+    test_set = X[501:550]
+    true_label = y[501:550]
     predicted_paraphrases_error = get_prediction(clf, test_set)
 
     for review, labels, truth in zip(test_set, predicted_paraphrases_error,true_label):
@@ -202,9 +202,9 @@ def test():
     
     df = merge_predicted_with_true_labels(predicted_paraphrases_error,true_label)
 
-    # timestr = time.strftime("%Y%m%d-%H-%M-%S")
-    # file_name = f"./predicted_vs_annotated-{timestr}.csv"
-    # df.to_csv(file_name, index = False)
+    timestr = time.strftime("%Y%m%d-%H-%M-%S")
+    file_name = f"./predicted_vs_annotated-{timestr}.csv"
+    df.to_csv(file_name, index = False)
 
     new_columns = [
         'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
@@ -214,13 +214,19 @@ def test():
 
     kripp_alpha, EMR, h_loss, r_score, p_score, f1 = compute_metric(df, y_pred, y_true)
 
-    print(f"Krippendorff's alpha inter-agreement: {kripp_alpha}")
-    print(f'Exact Match Ratio: {EMR}')
-    print(f'Hamming loss: {h_loss}')
-    print(f'Recall: {r_score}')
-    print(f'Precision: {p_score}')
-    print(f'F1 Measure: {f1}')
-    
+    with open(f'Metric_score_-{timestr}.txt', "w") as f:
+        l = "\tKrippendorff's alpha inter-agreement: {kripp_alpha}"
+        l = len(l)+8
+        line_separator = "="*l
+        f.write(f"\n{line_separator}\n")
+        f.write(f"\tKrippendorff's alpha inter-agreement: {kripp_alpha}\n")
+        f.write(f'\tExact Match Ratio: {EMR}\n')
+        f.write(f'\tHamming loss: {h_loss}\n')
+        f.write(f'\tRecall: {r_score}\n')
+        f.write(f'\tPrecision: {p_score}\n')
+        f.write(f'\tF1 Measure: {f1}\n')
+        f.write(f"\n{line_separator}\n")
+
 if __name__ == "__main__":
 
     test()
