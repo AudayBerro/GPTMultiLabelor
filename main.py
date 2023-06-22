@@ -5,11 +5,10 @@ import time
 
 from skllm.config import SKLLMConfig
 from skllm import MultiLabelZeroShotGPTClassifier
-from sklearn.metrics import accuracy_score, hamming_loss, precision_score, recall_score, f1_score
 import pandas as pd
 
 from process_data import skllm_format_converter
-from evaluation import krippendorff_alpha, error_label_to_column
+from evaluation import error_label_to_column, compute_metric
 
 """
     Multi-label zero-shot with Scikit-LLM library https://github.com/iryna-kondr/scikit-llm
@@ -207,30 +206,21 @@ def test():
     # file_name = f"./predicted_vs_annotated-{timestr}.csv"
     # df.to_csv(file_name, index = False)
 
-    kripp_alpha = krippendorff_alpha(df)
-    print(f"Krippendorff's alpha inter-agreement: {kripp_alpha}")
-
     new_columns = [
         'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
     ]
 
     y_pred, y_true = error_label_to_column(df, new_columns)
 
-    EMR = accuracy_score(y_true, y_pred, normalize=True, sample_weight=None)
+    kripp_alpha, EMR, h_loss, r_score, p_score, f1 = compute_metric(df, y_pred, y_true)
+
+    print(f"Krippendorff's alpha inter-agreement: {kripp_alpha}")
     print(f'Exact Match Ratio: {EMR}')
-
-    h_loss = hamming_loss(y_true, y_pred)
     print(f'Hamming loss: {h_loss}')
-
-    r_score = precision_score(y_true=y_true, y_pred=y_pred, average='samples')
-    print(f'Recall: {r_score}') 
-
-    p_score = recall_score(y_true=y_true, y_pred=y_pred, average='samples')
+    print(f'Recall: {r_score}')
     print(f'Precision: {p_score}')
-
-    f1 = f1_score(y_true=y_true, y_pred=y_pred, average='samples')
     print(f'F1 Measure: {f1}')
-
+    
 if __name__ == "__main__":
 
     test()

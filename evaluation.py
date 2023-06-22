@@ -160,3 +160,45 @@ def error_label_to_column(df, new_columns = ['a', 'b', 'c']):
     y_pred,y_true = convert_label_to_number(df,new_columns)
     
     return y_pred,y_true
+
+def compute_metric(df,y_pred,y_true):
+    """
+        Compute various evaluation metrics for predicted and true labels.
+
+        This function takes predicted paraphrases with error labels and true labels as input, and computes various evaluation metrics including
+        Krippendorff's alpha inter-agreement, Exact Match Ratio (EMR), Hamming loss, recall, precision, and F1 measure.
+
+        :args
+            - df (pandas.DataFrame): The input DataFrame used for calculating Krippendorff's alpha.
+            - y_pred (numpy.array-like): Predicted labels.
+            - y_true (numpy.array-like): True labels.
+
+        :return
+            - tuple: A tuple containing the following metrics:
+                - kripp_alpha (float): Krippendorff's alpha inter-agreement.
+                - EMR (float): Exact Match Ratio.
+                - h_loss (float): Hamming loss.
+                - r_score (float): Recall score (averaged over samples).
+                - p_score (float): Precision score (averaged over samples).
+                - f1 (float): F1 measure (averaged over samples).
+    """
+    
+    kripp_alpha = krippendorff_alpha(df)
+    # print(f"Krippendorff's alpha inter-agreement: {kripp_alpha}")
+
+    EMR = accuracy_score(y_true, y_pred, normalize=True, sample_weight=None)
+    # print(f'Exact Match Ratio: {EMR}')
+
+    h_loss = hamming_loss(y_true, y_pred)
+    # print(f'Hamming loss: {h_loss}')
+
+    r_score = recall_score(y_true=y_true, y_pred=y_pred, average='samples')
+    # print(f'Recall: {r_score}') 
+
+    p_score = precision_score(y_true=y_true, y_pred=y_pred, average='samples')
+    # print(f'Precision: {p_score}')
+
+    f1 = f1_score(y_true=y_true, y_pred=y_pred, average='samples')
+    # print(f'F1 Measure: {f1}')
+
+    return kripp_alpha, EMR, h_loss, r_score, p_score, f1
