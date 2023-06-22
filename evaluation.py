@@ -112,15 +112,14 @@ def convert_label_to_number(df,new_columns,default_value = 0):
 
         ##convert prediction column values to 1
         if row['prediction']:
-            labels = ast.literal_eval(row['prediction'])#get list of labels
+            labels = row['prediction']#get list of labels
 
             for c in labels:
                 new_df_prediction.loc[index, c] = 1
         
         #convert annotation column values to 1
         if row['annotation']:
-            #Convert a the row value(which is a pandas.core.series.Series) a representation of a list to an actual list using the ast module. e.g. "[1, 2, 3]" => [1, 2, 3]
-            labels = ast.literal_eval(row['annotation'])#get list of labels
+            labels = row['annotation']#get list of labels
 
             for c in labels:
                 new_df_annotation.loc[index, c] = 1
