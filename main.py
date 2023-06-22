@@ -1,12 +1,15 @@
 import os
 import configparser
 import argparse
+import time
 
 from skllm.config import SKLLMConfig
 from skllm import MultiLabelZeroShotGPTClassifier
+from sklearn.metrics import accuracy_score, hamming_loss, precision_score, recall_score, f1_score
 import pandas as pd
 
 from process_data import skllm_format_converter
+from evaluation import krippendorff_alpha, error_label_to_column
 
 """
     Multi-label zero-shot with Scikit-LLM library https://github.com/iryna-kondr/scikit-llm
@@ -129,8 +132,47 @@ def get_prediction(clf, data):
 
     return predicted_paraphrases_error
 
-if __name__ == "__main__":
 
+def merge_predicted_with_true_labels(predicted_labels,annotated_labels):
+    """
+        Merge predicted and annotated labels into a DataFrame.
+        
+        :args
+            - predicted_labels (list of lists): A python list of lists representing predicted labels. Contains labels predicted by the GPT Multi Label ZeroShot model
+            - annotated_labels (list of lists): A python list of lists representing annotated labels. Contains ground truth labels that have been manually annotated in the TPME dataset.
+
+        :return
+            pandas.DataFrame: A DataFrame with two columns: 'predicted' and 'annotated'.
+
+            Example:
+            >>> predicted = [['A', 'B', 'C'], ['D', 'E', 'F']]
+            >>> annotated = [['X', 'Y', 'Z'], ['P', 'Q', 'R']]
+            >>> df = merge_predicted_with_true_labels(predicted, annotated)
+            >>> df.head()
+                annotation  prediction
+            0  [X, Y, Z]  [A, B, C]
+            1  [P, Q, R]  [D, E, F]
+    """
+    
+    # Create a dictionary with 'prediction' and 'annotation' as keys
+    data = {'prediction': predicted_labels, 'annotation': annotated_labels}
+
+    # Create a DataFrame from the dictionary
+    df = pd.DataFrame(data)
+
+    return df
+
+def test():
+    """
+        This is a simple test function to show how to execute the code to obtain the predicted error label.
+
+        args:
+            - None
+
+        return:
+            - None
+
+    """
     #Configure OpenAI API (key)
     configure_API_Key()
 
@@ -147,13 +189,9 @@ if __name__ == "__main__":
     # max_labels = args.max_labels
     max_labels = 5
     clf = MultiLabelZeroShotGPTClassifier(max_labels = max_labels)
-    print(type(clf))
-    sys.exit()
 
     #fitting the data / Train the model 
-    clf.fit(X = X[0:20], y = y[0:20])
-
-    print(f"Type clf: {type(clf)}")
+    clf.fit(X = X[0:10], y = y[0:10])
 
     #Use the trained classifier to predict the error of the paraphrases
     test_set = X[51:60]
@@ -162,3 +200,37 @@ if __name__ == "__main__":
 
     for review, labels, truth in zip(test_set, predicted_paraphrases_error,true_label):
         print(f"Review: {review}\nPredicted Labels: {labels}\nTrue Labels: {truth}\n")
+    
+    df = merge_predicted_with_true_labels(predicted_paraphrases_error,true_label)
+
+    # timestr = time.strftime("%Y%m%d-%H-%M-%S")
+    # file_name = f"./predicted_vs_annotated-{timestr}.csv"
+    # df.to_csv(file_name, index = False)
+
+    kripp_alpha = krippendorff_alpha(df)
+    print(f"Krippendorff's alpha inter-agreement: {kripp_alpha}")
+
+    new_columns = [
+        'semantic', 'spelling', 'grammar', 'redundant', 'duplication', 'incoherent', 'punctuation', 'wrong slot', 'slot addition', 'slot omission', 'wordy', 'answering', 'questioning', 'homonym', 'acronym', 'correct'
+    ]
+
+    y_pred, y_true = error_label_to_column(df, new_columns)
+
+    EMR = accuracy_score(y_true, y_pred, normalize=True, sample_weight=None)
+    print(f'Exact Match Ratio: {EMR}')
+
+    h_loss = hamming_loss(y_true, y_pred)
+    print(f'Hamming loss: {h_loss}')
+
+    r_score = precision_score(y_true=y_true, y_pred=y_pred, average='samples')
+    print(f'Recall: {r_score}') 
+
+    p_score = recall_score(y_true=y_true, y_pred=y_pred, average='samples')
+    print(f'Precision: {p_score}')
+
+    f1 = f1_score(y_true=y_true, y_pred=y_pred, average='samples')
+    print(f'F1 Measure: {f1}')
+
+if __name__ == "__main__":
+
+    test()
